@@ -1,0 +1,63 @@
+-> Introduction to the concept of user following in social media apps
+	-> Enables users to keep up with others' activities
+	-> Introduces many-to-many relationships in databases
+
+-> Database Relationships
+	-> Relationships link records in a database
+	-> Common relationship types: one-to-many, many-to-one, and one-to-one
+	-> One-to-many: foreign key on the "many" side references primary key on the "one" side
+	-> Many-to-one: reverse of one-to-many, viewed from the "many" side
+	-> One-to-one: "many" side has only one element
+
+-> Many-To-Many Relationship
+	-> Links many elements on one side to many elements on the other side
+	-> Example: A student can take many courses, and a course can have many students
+	-> A single foreign key on both sides doesn't work for this case
+
+-> Association Table
+	-> Resolves many-to-many relationships into two one-to-many relationships
+	-> Middle table (association table) links "students" to "courses"
+	-> Example: Registration table links students to courses
+	-> Queries require two steps: get the courses for a student, then traverse the relationship to get course details
+
+-> Implementing Followers in the Database
+	-> Users following other users uses a self-referential many-to-many relationship
+	-> Association table links users to other users, each user can follow many others
+
+-> Optimizing the Association Table
+	-> Association tables usually contain just foreign keys, but can track additional data like follow timestamps
+	-> SQLAlchemy allows adding extra columns to association tables to track these relationships
+	-> Super-association table stores additional info
+
+-> Follow Model
+	-> Defines the model for tracking follows in the database
+	-> `Follow` model has columns for `follower_id`, `following_id`, and `timestamp`
+	-> Foreign keys reference the "users" table
+	-> Composite primary key formed by both foreign keys
+
+-> Associating The Association
+	-> Use relationships to link the `Follow` model to the `User` model
+	-> Define two one-to-many relationships between `User` and `Follow`
+	-> Use `backref` for reverse access to followers and following
+	-> Cascade delete to remove follow records when a user is deleted
+
+-> Python Helper Methods
+	-> Define helper methods in the `User` model for following/unfollowing and checking relationships
+	-> `follow()` method adds a follow record
+	-> `unfollow()` method deletes a follow record
+	-> `is_following()` and `is_a_follower()` methods check relationships
+
+-> (Un)Following Other Users
+	-> View function for following users by checking if the user is already followed
+	-> If the user is valid and not already followed, add them to the follow table
+
+-> View Functions To Display Users
+	-> Create view functions to show followers and who a user is following
+	-> Uses pagination to display followers in a user-friendly manner
+	-> Example: A function to display followers for a user
+
+-> Add To User Template
+	-> Add follow/unfollow buttons to the user template
+	-> Button visibility depends on whether the user has permission to follow and if the user is not the current user
+	-> Display how many followers and following a user has with links to the corresponding view functions
+	-> Show "Follows you" if the current user is being followed by the displayed user
