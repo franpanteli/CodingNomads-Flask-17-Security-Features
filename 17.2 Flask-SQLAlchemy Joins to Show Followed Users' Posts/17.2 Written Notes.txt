@@ -1,0 +1,55 @@
+-> Revisiting Relationships in the Database Lesson
+	-> Introduction to using SQLAlchemy joins to show followed users' posts
+	-> Lesson demonstrates querying the database for efficient data retrieval
+	-> Builds on an ongoing Python + Flask project from the course
+
+-> Querying For Followed Compositions
+	-> Current index page shows all compositions but can be modified
+	-> Goal is to filter compositions by users one follows
+	-> Inefficient method: N+1 problem of multiple queries for growing databases
+	-> Solution: Use SQLAlchemy joins to optimise the query process
+
+-> Using SQLAlchemy Joins
+	-> Joins combine rows from multiple tables satisfying a condition
+	-> Temporary tables are created for combined data rows
+	-> Example:
+		-> Tables: Users, Compositions, and Follows
+		-> Join Users table with Compositions table via Follows table to fetch specific data
+		-> Demonstrates retrieval of compositions by users followed by a particular user
+
+-> Flask-SQLAlchemy Join Example
+	-> Shows query for fetching followed compositions:
+		-> Select data from Follow table, filter by follower ID, join with Compositions table
+		-> Result: Compositions by followed users
+	-> Alternate query order (join first, filter later) yields same result due to database optimisation
+
+-> Viewing Choices
+	-> Adds flexibility to display either all compositions or followed compositions
+	-> Uses cookies to store user preference for showing compositions
+	-> Cookies are set via view functions and remembered for 30 days
+	-> Example view function:
+		-> `show_followed`: Filters compositions by followed users
+		-> `show_all`: Displays all compositions
+	-> Pagination ensures large datasets are displayed efficiently
+
+-> Setting Cookies
+	-> Cookies created using Flask's `make_response()` function
+	-> Expiry of cookies set to 30 days via `max_age` parameter
+	-> Cookie stores whether to show followed compositions or all compositions
+
+-> Add Tabs To Home Page
+	-> Incorporates navigation tabs in the index template
+	-> Tabs allow switching between all compositions and followed compositions
+	-> CSS customisation provided for styling tabs
+	-> Suggests registering users as their own followers to show their own compositions
+	-> Static method added to ensure existing users are self-following
+
+-> Handling Follower and Following Counts
+	-> Counts adjusted to exclude self-following
+	-> Template updates ensure counts reflect real follower/following numbers
+
+-> Summary
+	-> Recognised and resolved the N+1 problem with efficient database joins
+	-> Learned SQLAlchemy join queries for combining and filtering related table data
+	-> Incorporated properties in models to manage complex queries
+	-> Used cookies to toggle user views dynamically
