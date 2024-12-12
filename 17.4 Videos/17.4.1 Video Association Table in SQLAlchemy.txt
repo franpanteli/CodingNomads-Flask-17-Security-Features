@@ -1,0 +1,120 @@
+Flask Video Notes on Creating an Association Table for Following Users
+
+-> Creating the Association Table for Following Users
+   -> In this video, we’ll explore how to set up an association table to allow users to follow one another in a Flask application
+   -> The association table will be created between users, where each user has a unique ID, and we will establish a relationship between these users to represent following actions
+   -> This association table will be called `follows` and is used to track which users are following others
+   -> You can create an association table in SQLAlchemy, which acts as a link between two models
+   -> Normally, an association table is created between two tables using a standard SQLAlchemy table, but since we want to include additional information (timestamps), we will upgrade this table
+
+-> Designing the Follows Table with Timestamps
+   -> To include the timestamp of when a new follow relationship is created, we will need to modify the association table to handle this extra information
+   -> The follows table will have the following columns:
+     -> `follower_id`: This will be a foreign key referencing the user who is following another user
+     -> `followed_id`: This will be a foreign key referencing the user being followed
+     -> Both `follower_id` and `followed_id` columns will be combined to form a composite primary key for the follows table
+     -> `timestamp`: This column will store the timestamp of when the follow relationship was established
+     -> Here’s how to set up the table in Python using SQLAlchemy:
+       ```python
+       class Follow(db.Model):
+           __tablename__ = 'follows'
+           follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+           followed_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+           timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+       ```
+     -> The `timestamp` field will automatically be set when a new follow relationship is added using the default value of the current UTC time
+
+-> Establishing Relationships in the User Model
+   -> In the User model, we need to define two one-to-many relationships to represent the followers and the people a user is following
+   -> These relationships are based on foreign keys that point to the users table
+   -> The first relationship is for users that a specific user is following, so we need to create a back-reference from the `Follow` model
+   -> To establish these relationships, use SQLAlchemy’s `relationship` function
+     -> We specify the `foreign_keys` attribute to indicate which column serves as the foreign key
+     -> Here’s how you can define the relationships:
+       ```python
+       class User(db.Model):
+           __tablename__ = 'user'
+           id = db.Column(db.Integer, primary_key=True)
+           username = db.Column(db.String(120), unique=True, nullable=False)
+           follows = db.relationship(
+               'User', secondary='follows', 
+               primaryjoin=(follows.c.follower_id == id),
+               secondaryjoin=(follows.c.followed_id == id),
+               backref=db.backref('followed_by', lazy='joined'),
+               lazy='dynamic', cascade='all, delete-orphan')
+       ```
+
+-> The Backref and Cascade Options
+   -> We use the `backref` argument in the `relationship` to define a back-reference from the related table (in this case, the `User` model) to the original table
+     -> The `backref` creates a property on the other side of the relationship, enabling us to access the list of followers via the `followed_by` attribute
+     -> The `lazy='joined'` option ensures that the related user objects are loaded in a single query when accessed
+   -> The `cascade` option specifies how changes to the parent object should be propagated to related objects
+     -> By default, the cascade option ensures that when a user is deleted, the associated follow relationships are also deleted, but we want to omit the `delete-orphan` option from the `follows` relationship for the following direction
+
+-> Deleting Orphaned Rows
+   -> In the `follows` table, when a user is deleted, their associated rows should also be deleted. This is where `delete-orphan` comes in
+     -> The `delete-orphan` option ensures that if a user is removed from the `follows` relationship, their follow rows will also be deleted from the `follows` table
+     -> In our case, the following relationship should not include `delete-orphan` because we want to keep the records even after the user has been removed, ensuring that they persist for the follow relationships to be accurate
+
+-> Helper Methods for Following and Unfollowing Users
+   -> After defining the relationships, we can create helper functions to manage following and unfollowing users
+   -> These methods will be defined in the `User` model
+   -> The `follow` method should check if the current user is already following the target user
+     -> If not, a new `Follow` object will be created and added to the database
+     -> Here’s how the `follow` method can be written in Python:
+       ```python
+       def follow(self, user):
+           if not self.is_following(user):
+               follow = Follow(follower_id=self.id, followed_id=user.id)
+               db.session.add(follow)
+               db.session.commit()
+       ```
+   -> The `unfollow` method should check if the current user is following the other user and, if so, remove the corresponding `Follow` object from the database:
+     ```python
+     def unfollow(self, user):
+         follow = Follow.query.filter_by(follower_id=self.id, followed_id=user.id).first()
+         if follow:
+             db.session.delete(follow)
+             db.session.commit()
+     ```
+   -> The `is_following` method checks if the current user is following another user
+     -> It verifies if the `Follow` object exists in the database and confirms the relationship:
+       ```python
+       def is_following(self, user):
+           return Follow.query.filter_by(follower_id=self.id, followed_id=user.id).count() > 0
+       ```
+
+-> Testing the Following Functionality
+   -> To test the following functionality, open a Flask shell session by running `flask shell`
+   -> Create two users in the shell: one for Sutton and another for Daniel Bates
+   -> Let Sutton follow Daniel Bates, and then commit the changes to the database
+     -> Example in the Flask shell:
+       ```python
+       sutton = User(username='Sutton')
+       daniel = User(username='Daniel Bates')
+       db.session.add(sutton)
+       db.session.add(daniel)
+       db.session.commit()
+       sutton.follow(daniel)
+       db.session.commit()
+       ```
+   -> After committing the changes, you can check if Sutton is following Daniel Bates
+     -> You can use the following to see the list of users Sutton is following:
+       ```python
+       sutton.follows.all()  # Should return a list containing Daniel Bates
+       ```
+
+-> Examining the Follow Object
+   -> After following, you can examine the `Follow` object to verify the relationship
+     -> The first user will be listed as the `follower`, and the second user as the `followed`
+     -> The timestamp will show when the follow relationship was created
+   -> If you clear the follows table, it should have no rows, confirming that your many-to-many relationship works correctly
+
+-> Conclusion
+   -> In this video, you have learned how to:
+     -> Create an association table for tracking follow relationships between users in Flask using SQLAlchemy
+     -> Add relationships between users in the User model with `one-to-many` and `many-to-many` relationships
+     -> Include additional data (like timestamps) in the association table
+     -> Create helper methods for following, unfollowing, and checking follow status
+     -> Test the functionality in a Flask shell session to ensure it works as expected
+   -> You’ve now successfully implemented a following system in your Flask application, allowing users to follow each other and track these relationships

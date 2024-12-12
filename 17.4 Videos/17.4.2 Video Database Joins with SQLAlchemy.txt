@@ -1,0 +1,78 @@
+Flask Video Notes on Joining Database Tables and Retrieving Compositions
+
+-> Joining the Compositions Table with the Follows Table
+   -> In Flask with SQLAlchemy, joining tables is a common operation when you need to combine data from multiple tables based on a relationship 
+   -> To retrieve compositions submitted by users followed by another user, you need to join the `compositions` table with the `follows` table The `follows` table tracks who follows whom, and the `compositions` table stores the works of users
+   -> Begin by creating a query object with the `Composition` model as the argument This means you’re focusing on retrieving compositions, but you'll be joining with the `follows` table to filter based on which users are followed
+   -> Python code to start this process:
+     ```python
+     query = db.session.query(Composition).select_from(Follow).join(Composition)
+     ```
+     In this line:
+     - `db.session.query(Composition)` creates a query object to query the `Composition` model
+     - `select_from(Follow)` tells SQLAlchemy to start the query from the `follows` table (this will be the left table in the join)
+     - `join(Composition)` creates the join between `follows` and `compositions` tables using the foreign key relationship between the `follows` and `compositions` tables
+
+-> Understanding the Join Condition
+   -> The join condition specifies how the `follows` table connects to the `compositions` table In this case, the `follows` table has a `followed_id` column, which is a foreign key to the `user_id` in the `compositions` table
+   -> The join will use the `followed_id` in the `follows` table and match it to the `user_id` in the `compositions` table:
+     ```python
+     query = query.join(Composition, Follow.followed_id == Composition.user_id)
+     ```
+     This line sets the condition for the join, ensuring that you match compositions by users who are being followed The `Follow.followed_id == Composition.user_id` condition links the `follows` table's `followed_id` column to the `user_id` in the `compositions` table
+
+-> Refining the Query to Filter by Follower
+   -> Now, you need to filter the compositions by the user who is doing the following This is achieved by specifying the `follower_id` column in the `follows` table
+   -> For example, if you want to find compositions of users followed by user 2, you filter on `follower_id = 2`:
+     ```python
+     query = query.filter(Follow.follower_id == 2)
+     ```
+     This line refines the query to only return compositions of users who are followed by user 2, based on the `follower_id` in the `follows` table
+
+-> Testing the Query and Output
+   -> After refining the query, execute it to get the results To do this, use `query.all()` to retrieve all compositions that meet the filter condition
+   -> You can then iterate over the results to extract useful information, such as the `artist_id` and `title` of each composition:
+     ```python
+     results = query.all()
+     for composition in results:
+         print(f"Artist ID: {composition.artist_id}, Title: {composition.title}")
+     ```
+     This will print out the `artist_id` and `title` of each composition, confirming that they all belong to users followed by user 2 If you have multiple compositions by different users followed by user 2, each composition will appear in the list
+
+-> Simplifying the Query with Direct Model Operations
+   -> You can simplify the query by starting directly with the `Composition` object and using the `join` operation within the query This removes the need to specify `select_from` and streamlines the query logic
+   -> In this case, you can apply the join directly within the `Composition` model query:
+     ```python
+     query = db.session.query(Composition).join(Follow, Follow.followed_id == Composition.user_id).filter(Follow.follower_id == 2)
+     results = query.all()
+     ```
+     This query is logically equivalent to the previous one but starts directly from the `Composition` model and applies the necessary join and filter conditions in a cleaner manner
+
+-> Reusing the Query as a Method in the User Model
+   -> To reuse this query, encapsulate it in the `User` model as a method This will allow you to retrieve compositions by users followed by any given user dynamically
+   -> Define the `followed_compositions` method in the `User` model, which will return the compositions of users followed by the current user (i.e., the user instance that calls the method):
+     ```python
+     class User(db.Model):
+         id = db.Column(db.Integer, primary_key=True)
+         email = db.Column(db.String(120), unique=True, nullable=False)
+         # other columns
+
+         def followed_compositions(self):
+             return db.session.query(Composition).join(Follow, Follow.followed_id == Composition.user_id).filter(Follow.follower_id == self.id)
+     ```
+   -> In this example, `self.id` refers to the current user’s ID When you call `followed_compositions()` on a user object, it will return all compositions by users that are followed by that specific user
+
+-> Testing the Query in a Shell Session
+   -> To test this method in a shell session, you can first retrieve a user object (for example, user with ID 2) and call the `followed_compositions()` method to get all compositions by users followed by this user
+   -> Example code for testing:
+     ```python
+     user = User.query.get(2)
+     compositions = user.followed_compositions().all()
+     for composition in compositions:
+         print(f"Artist ID: {composition.artist_id}, Title: {composition.title}")
+     ```
+   -> This will output the compositions by users followed by user 2, confirming that the method works as intended
+
+-> Final Thoughts
+   -> This approach demonstrates how to use SQLAlchemy and Python to join database tables (`compositions` and `follows`), filter data by specific conditions, and reuse queries effectively within a Flask application
+   -> By integrating this logic into the `User` model, you can dynamically retrieve compositions from users that a specific user follows, enabling more complex data retrieval and user interactions in your application
