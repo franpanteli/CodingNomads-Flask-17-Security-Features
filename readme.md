@@ -1,6 +1,6 @@
 # CodingNomads-Flask-17-Security-Features
 ## Repository File Tree
-This repository contains my work for the 17h module in the [Coding Nomads Flask Web Framework](https://codingnomads.com/course/python-flask-web-framework) course. I completed this 21-module course as part of my independent learning, to invest in my Python skills. I produced an in-depth library of resources on this module, whose file tree is provided below. 
+This repository contains my work for the 17th module in the [Coding Nomads Flask Web Framework](https://codingnomads.com/course/python-flask-web-framework) course. I completed this 21-module course as part of my independent learning, to invest in my Python skills. I produced an in-depth library of resources on this module, whose file tree is provided below. 
 
 <img width="1035" alt="Screenshot 2025-01-19 at 15 41 50" src="https://github.com/user-attachments/assets/3b80c667-b48b-4055-b4be-10c1d6ed46f9" />
 
