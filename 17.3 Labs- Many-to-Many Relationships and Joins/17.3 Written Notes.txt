@@ -1,11 +1,11 @@
--> Revisiting Relationships in the Database Lesson: Labs
-    -> Focus on Many-to-Many Relationships and Joins
-    -> Recommended to clone the Python Flask labs project and open it in VS Code before starting
+-> revisiting relationships in the database lesson: labs  
+    -> focus on many-to-many relationships and joins  
+    -> recommended to clone the python flask labs project and open it in vs code before starting  
 
--> Learn by Doing
-    -> Navigate to the labs project directory in VS Code
-    -> Complete exercises in the `16_revisiting_relationships/01_many_to_many_and_joins` folder
-    -> Seek help or reviews via Discord if subscribed to membership or mentorship programmes
-    -> Push completed work to GitHub for version control and proof of completion
-        -> Emphasises importance of GitHub contribution graphs for career visibility
-        -> Advises practising Git & GitHub to gain industry-standard collaboration experience
+-> learn by doing  
+    -> navigate to the labs project directory in vs code  
+    -> complete exercises in the `16_revisiting_relationships/01_many_to_many_and_joins` folder  
+    -> seek help or reviews via discord if subscribed to membership or mentorship programmes  
+    -> push completed work to github for version control and proof of completion  
+        -> emphasises importance of github contribution graphs for career visibility  
+        -> advises practising git & github to gain industry-standard collaboration experience  
